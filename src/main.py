@@ -23,10 +23,12 @@ Bot = commands.Bot(command_prefix='!', description="This is a Helper Bot")
 #Commands
 
 @Bot.command()
-async def info_user(ctx, usuario:discord.Member, Nick):
-    embed = discord.Embed(title=f"{usuario.Nick}", description=f"Informacion sobre {ctx.usuario.Nick}", timestamp=datetime.datetime.utcnow(), color=discord.Colour.blue())
-    embed.add_field(name="Nombre:", value=f"{ctx.usuario.Nick}")
-    embed.add_field(name="ID:", value=f"{usuario.Id}")
+async def user_info(ctx, user:discord.Member):
+    embed = discord.Embed(title=f"{user.name}", description=f"Informacion de {user.name}", timestamp=datetime.datetime.utcnow(), color=discord.Colour.blue())
+    embed.add_field(name="Rol:", value=f"{user.roles.name}")
+    embed.add_field(name="Fecha de creacion:", value=f"{user.created_at}")
+    await ctx.send(embed=embed)
+    
 
 @Bot.command(name='subs')
 async def subscriptores(ctx,username):
@@ -73,7 +75,7 @@ async def help_bot(ctx):
         
     )
   interaction = await Bot.wait_for("button_click", check = lambda i: i.custom_id == "boton1")
-  embed = discord.Embed(title="Commands", description="!youtube \n !discord_nitro \n !hola \n !CM \n !m \n !info \n help", color=discord.Colour.blue())
+  embed = discord.Embed(title="Commands", description="!youtube \n !discord_nitro \n !hola \n !name_edit \n !m \n !info \n help \n subs \n sumar \n multiplicar", color=discord.Colour.blue())
   embed.set_thumbnail(url="https://i.pinimg.com/originals/c5/97/78/c59778757e58360f652399ece4b6c558.jpg")
   embed.set_footer(text=f"{ctx.user.name}")
   await interaction.send(embed=embed)
@@ -97,10 +99,10 @@ async def hola(ctx):
     await ctx.send(f"Hola {Mensage.author.name}")
     
 @Bot.command(pass_context=True)
-async def m(ctx):
+async def m( ctx, *, arg):
     Mensage = ctx.message
     await Mensage.delete()
-    await ctx.send(Mensage.content)
+    await ctx.send(arg)
 
 @Bot.command(pass_context=True)
 async def ping(ctx):
@@ -123,9 +125,16 @@ async def name_edit(ctx, usuario:discord.Member, Nick):
 #events
 
 @Bot.event
+async def on_command_error(ctx, error):
+    await ctx.send("Ingresa un comando valido")
+
+@Bot.event
 async def on_ready():
     await Bot.change_presence(activity=discord.Streaming(name="Python and Gaming", url="http://www.twitch.tv/k1ngag"))
+    print("+===============================+")
     print(f"the bot {Bot.user} Ready")
+    print(f"ID: {Bot.user.id}")
+    print("+===============================+")
 
 
 #anti spam
