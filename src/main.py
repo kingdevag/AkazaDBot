@@ -1,4 +1,4 @@
-from turtle import color
+from turtle import title
 import discord
 from discord.ext import commands
 from numpy import character
@@ -64,14 +64,7 @@ async def calc(ctx):
 
 @Bot.command(name='user_info')
 async def user_info(ctx, user=None):
-    if not user:
-        await ctx.send(f'tu id es: {ctx.message.author.id}')
-    else:
-        characters = '<@!>'
-        for x in range(len(characters)):
-            user = user.replace(characters[x], '')
-        embed = discord.Embed(title=f"<@{user}>", description="a", color=discord.Color.blue())
-        await ctx.send(embed=embed)
+    await ctx.send("COMANDO EN REPARACION")
     
 
 @Bot.command(name='subs')
@@ -86,12 +79,14 @@ async def subscriptores(ctx,username):
 @Bot.command()
 async def sumar(ctx, num1,num2):
     response = int(num1)+int(num2)
-    await ctx.send(response)
+    embed = discord.Embed(title="Respuesta", description=f"{num1} + {num2} = {response}", color=discord.Color.green())
+    await ctx.send(embed=embed)
 
 @Bot.command()
 async def multiplicar(ctx, num1,num2):
     response = int(num1)*int(num2)
-    await ctx.send(response)
+    embed = discord.Embed(title="Respuesta", description=f"{num1} X {num2} = {response}", color=discord.Color.green())
+    await ctx.send(embed=embed)
 
 @Bot.command()
 async def youtube(ctx, *, search):
@@ -103,12 +98,22 @@ async def youtube(ctx, *, search):
     
 @Bot.command()
 async def server_info(ctx):
-    embed = discord.Embed(title=f"{ctx.guild.name}", description="my creator is ♞!i~𝞚ℝⱮ𝞓𝞟🅓𝞨;..♟#7094", timestamp=datetime.datetime.utcnow(), color=discord.Colour.blue())
-    embed.add_field(name="Server create at", value=f"{ctx.guild.created_at}")
+    role_count = len(ctx.guild.roles)
+    list_of_bots = [bot.mention for bot in  ctx.guild.members if bot.bot]
+    
+    embed = discord.Embed(title=f"{ctx.guild.name}", description="Server info", timestamp=datetime.datetime.utcnow(), color=discord.Colour.blue())
+    embed.add_field(name="Name", value=f"{ctx.guild.name}")
+    embed.add_field(name="Servidor creado el", value=f"{ctx.guild.created_at}")
+    embed.add_field(name="nivel de verificación", value=str(ctx.guild.verification_level))
     embed.add_field(name="Server Owner", value=f"{ctx.guild.owner}")
+    embed.add_field(name="Rol mas alto", value=ctx.guild.roles[-2])
+    embed.add_field(name="Bots", value=', '.join(list_of_bots))
+    embed.add_field(name="Numero de miembros", value=f"{ctx.guild.member_count}")
+    embed.add_field(name="Numero de roles", value=str(role_count))
     embed.add_field(name="Server Region", value=f"{ctx.guild.region}")
     embed.add_field(name="Server ID", value=f"{ctx.guild.id}")
-    embed.set_thumbnail(url="https://img.shields.io/badge/Discord-7289DA?style=for-the-badge&logo=discord&logoColor=white")
+    embed.set_author(name=ctx.guild.name, icon_url=ctx.guild.icon_url)
+    embed.set_thumbnail(url=ctx.guild.icon_url)
     await ctx.send(embed=embed)
     
  
@@ -156,7 +161,11 @@ async def name_edit(ctx, usuario:discord.Member, Nick):
 
 @Bot.event
 async def on_command_error(ctx, error):
-    await ctx.send("Ingresa un comando valido")
+    embed = discord.Embed(title="Error", description="Problablemente ese comando no existe o esta mal escrito, Utiliza !help para ver los comandos", color=discord.Color.red())
+    embed.set_footer(text=f"{ctx.message.author.name} Vuelve a intentarlo")
+    embed.set_author(name=f"{Bot.user.name}", icon_url=f"{Bot.user.avatar_url}")
+    embed.set_thumbnail(url=f"{ctx.message.author.avatar_url}")
+    await ctx.send(embed=embed)
 
 
 @Bot.event
