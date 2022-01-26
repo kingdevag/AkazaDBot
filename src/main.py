@@ -1,5 +1,7 @@
+from turtle import color
 import discord
 from discord.ext import commands
+from numpy import character
 import keep_alive
 import time
 from discord_components import *
@@ -60,12 +62,16 @@ async def calc(ctx):
             await res.respond(content='', embed=f, components=buttons, type=7)
 
 
-@Bot.command()
-async def user_info(ctx, user:discord.Member):
-    embed = discord.Embed(title=f"{user.name}", description=f"Informacion de {user.name}", timestamp=datetime.datetime.utcnow(), color=discord.Colour.blue())
-    embed.add_field(name="Rol:", value=f"{user.roles.name}")
-    embed.add_field(name="Fecha de creacion:", value=f"{user.created_at}")
-    await ctx.send(embed=embed)
+@Bot.command(name='user_info')
+async def user_info(ctx, user=None):
+    if not user:
+        await ctx.send(f'tu id es: {ctx.message.author.id}')
+    else:
+        characters = '<@!>'
+        for x in range(len(characters)):
+            user = user.replace(characters[x], '')
+        embed = discord.Embed(title=f"<@{user}>", description="a", color=discord.Color.blue())
+        await ctx.send(embed=embed)
     
 
 @Bot.command(name='subs')
