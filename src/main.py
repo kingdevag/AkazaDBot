@@ -1,7 +1,6 @@
 import discord
 from discord.ext import commands
 import keep_alive
-import time
 from discord_components import *
 import asyncio
 import datetime
@@ -11,6 +10,8 @@ import urllib.request
 import json
 import os
 from dotenv import load_dotenv
+import random
+import aiosqlite
 
 load_dotenv()
 
@@ -20,11 +21,12 @@ intents.guild_reactions = True
 intents.guild_messages = True
 intents.messages = True
 
-Bot = commands.Bot(command_prefix='!', description="This is a Helper Bot")
+Bot = commands.Bot(command_prefix='!', intents=intents, description="This is a Helper Bot")
 
 #extras
 
 @Bot.remove_command('help')
+
 
 #Commands
 
@@ -35,6 +37,7 @@ async def bot_info(ctx):
     embed.add_field(name="Bot creado por", value="♞!i~𝞚ℝⱮ𝞓𝞟🅓𝞨;..♟#7094")
     embed.add_field(name="ID Del Bot", value=f"{Bot.user.id}")
     embed.add_field(name="Version del Bot", value=f"{os.getenv('version')}")
+    embed.add_field(name="Ping del Bot", value=f'{round (Bot.latency * 1000)}ms')
     embed.set_footer(text=f"{ctx.message.author.name} Esperamos que te aya servido esta informacion")
     embed.set_thumbnail(url=Bot.user.avatar_url)
     embed.set_author(name=Bot.user, icon_url=Bot.user.avatar_url)
@@ -49,36 +52,6 @@ async def invite(ctx):
     embed.set_thumbnail(url=ctx.message.author.avatar_url)
     await ctx.send(embed=embed)
     
-
-@Bot.command()
-async def calc(ctx):
-    m = await ctx.send(content='Cargando calculadora...')
-    expression = 'None'
-    delta = datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
-    e = discord.Embed(title=f'{ctx.author.name}\'s Calculadora | {ctx.author.id}', description=expression,
-                        timestamp=delta)
-    await m.edit(components=buttons, embed=e)
-    while m.created_at < delta:
-        res = await client.wait_for('button_click')
-        if res.author.id == int(res.message.embeds[0].title.split('|')[1]) and res.message.embeds[
-            0].timestamp < delta:
-            expression = res.message.embeds[0].description
-            if expression == 'None' or expression == 'A ocurrido un error':
-                expression = ''
-            if res.component.label == 'Exit':
-                await res.respond(content='calculadora cerrada', type=7)
-                break
-            elif res.component.label == '←':
-                expression = expression[:-1]
-            elif res.component.label == 'Clear':
-                expression = 'None'
-            elif res.component.label == '=':
-                expression = calculate(expression)
-            else:
-                expression += res.component.label
-            f = discord.Embed(title=f'{res.author.name}\'s calculator|{res.author.id}', description=expression,
-                                timestamp=delta)
-            await res.respond(content='', embed=f, components=buttons, type=7)
 
 
 @Bot.command(name='user_info')
@@ -127,6 +100,7 @@ async def server_info(ctx):
     
     embed = discord.Embed(title=f"{ctx.guild.name} Server Info", description="Server info", timestamp=datetime.datetime.utcnow(), color=discord.Colour.blue())
     embed.add_field(name="Nombre", value=f"{ctx.guild.name}")
+    embed.add_field(name="Descripcion", value=f"{ctx.guild.description}")
     embed.add_field(name="Servidor creado el", value=f"{ctx.guild.created_at}")
     embed.add_field(name="nivel de verificación", value=str(ctx.guild.verification_level))
     embed.add_field(name="Server Owner", value=f"{ctx.guild.owner}")
@@ -168,11 +142,7 @@ async def secret( ctx, *, arg):
 
 @Bot.command(pass_context=True)
 async def ping(ctx):
-    antes = time.monotonic()
-    mensage =    await ctx.send("Pong")
-    ping1 = (time.monotonic() - antes)*1000
-    ping2 =(str(ping1).split('.'))[0]
-    await mensage.edit(content="pong! (" + ping2 + "ms)")
+    await ctx.send(f'Pong! ({round (Bot.latency * 1000)}ms)')
     
     
 @Bot.command(pass_context=True)
@@ -187,67 +157,232 @@ async def name_edit(ctx, usuario:discord.Member, Nick):
 
 #events
 
-@Bot.event
-async def on_command_error(ctx, error):
-    embed = discord.Embed(title="Error", description="Problablemente ese comando no existe o esta mal escrito, Utiliza !help para ver los comandos", color=discord.Color.red())
-    embed.set_footer(text=f"{ctx.message.author.name} Vuelve a intentarlo")
-    embed.set_author(name=f"{Bot.user.name}", icon_url=f"{Bot.user.avatar_url}")
-    embed.set_thumbnail(url=f"{ctx.message.author.avatar_url}")
-    await ctx.send(embed=embed)
+
 
 
 @Bot.event
 async def on_ready():
+    async with aiosqlite.connect('server.db') as db:
+        async with db.cursor() as cursor:
+            await cursor.execute('CREATE TABLE IF NOT EXISTS welcome (channel_text ID, guild ID)')
+        await db.commit()
+        
+        
     await Bot.change_presence(activity=discord.Streaming(name="Python and Gaming", url="http://www.twitch.tv/k1ngag"))
     print("+===============================+")
     print(f"The Bot {Bot.user} Ready")
     print(f"Bot Version {os.getenv('version')}")
     print(f"ID: {Bot.user.id}")
+    print("open database = True")
     print("+===============================+")
     
+@Bot.event
+async def on_command_error(ctx, error):
+    erp = ("Ocurrio un error, El error es:")
+    embed = discord.Embed(title="Error", description="Problablemente ese comando no existe o esta mal escrito, Utiliza !help para ver los comandos", color=discord.Color.red())
+    embed.set_footer(text=f"{ctx.message.author.name} Vuelve a intentarlo")
+    embed.set_author(name=f"{Bot.user.name}", icon_url=f"{Bot.user.avatar_url}")
+    embed.set_thumbnail(url=f"{ctx.message.author.avatar_url}")
+    await ctx.send(embed=embed)
     
-    DiscordComponents(Bot)
- 
-buttons = [
-    [
-        Button(style=ButtonStyle.grey, label='1'),
-        Button(style=ButtonStyle.grey, label='2'),
-        Button(style=ButtonStyle.grey, label='3'),
-        Button(style=ButtonStyle.blue, label='×'),
-        Button(style=ButtonStyle.red, label='Exit')
-    ],
-    [
-        Button(style=ButtonStyle.grey, label='4'),
-        Button(style=ButtonStyle.grey, label='5'),
-        Button(style=ButtonStyle.grey, label='6'),
-        Button(style=ButtonStyle.blue, label='÷'),
-        Button(style=ButtonStyle.red, label='←')
-    ],
-    [
-        Button(style=ButtonStyle.grey, label='7'),
-        Button(style=ButtonStyle.grey, label='8'),
-        Button(style=ButtonStyle.grey, label='9'),
-        Button(style=ButtonStyle.blue, label='+'),
-        Button(style=ButtonStyle.red, label='Clear')
-    ],
-    [
-        Button(style=ButtonStyle.grey, label='00'),
-        Button(style=ButtonStyle.grey, label='0'),
-        Button(style=ButtonStyle.grey, label='.'),
-        Button(style=ButtonStyle.blue, label='-'),
-        Button(style=ButtonStyle.green, label='=')
-    ],
-]
- 
-def calculate(exp):
-    o = exp.replace('×', '*')
-    o = o.replace('÷', '/')
-    result = ''
+    print("+-----------------------------------------------------------------------------+")
+    print(erp, error)
+    print("+-----------------------------------------------------------------------------+")
+    
+
+
+#Bienvenidas
+
+@Bot.event
+async def on_member_join(member):
+    async with aiosqlite.connect('server.db') as db:
+        async with db.cursor() as cursor:
+            await cursor.execute('SELECT channel_text FROM welcome WHERE guild = ?', (member.guild.id,))
+            data = await cursor.fetchone()
+            if data:
+                channel_text = int(data[0])
+                if channel_text == 0:
+                    pass
+                else:
+                    try:
+                        channel_text = await Bot.fetch_channel(channel_text)
+                        embed = discord.Embed(title=f"{member.name} Bienvenid@ a {member.guild.name}", description="", color=discord.Color.green())
+                        embed.set_author(name=Bot.user, icon_url=Bot.user.avatar_url)
+                        embed.set_thumbnail(url=member.avatar_url)
+                        await channel_text.send(embed=embed)
+                    except:
+                        pass
+            else:
+                pass
+        await db.commit()
+
+@Bot.command(name='configbienvenida')
+async def bienvenidac(ctx, canal=None):
+    if not canal:
+        async with aiosqlite.connect('server.db') as db:
+            async with db.cursor() as cursor:
+                await cursor.execute('SELECT channel_text FROM welcome WHERE guild = ?', (ctx.guild.id,))
+                data = await cursor.fetchone()
+                if  data:
+                    await cursor.execute('UPDATE welcome SET channel_text = ? WHERE guild = ?', (0, ctx.guild.id,))
+                else:
+                    await cursor.execute('INSERT INTO welcome (channel_text, guild) VALUES (?, ?)', (0, ctx.guild.id,))
+            await db.commit()
+        return await ctx.send('Canal de texto eliminado con exito!')
+    
+    if re.findall('^<#([0-9]+)>$', canal):
+        canal = re.findall('^<#([0-9]+)>$', canal)
+        canal = canal[0]
     try:
-        result = str(eval(o))
+        canal = int(canal)
     except:
-        result = 'A ocurrido un error'
-    return result
+        return await ctx.send('El ID no es valido')
+    async with aiosqlite.connect('server.db') as db:
+        async with db.cursor() as cursor:
+            await cursor.execute('SELECT channel_text FROM welcome WHERE guild = ?', (ctx.guild.id,))
+            data = await cursor.fetchone()
+            if data:
+                await cursor.execute('UPDATE welcome SET channel_text = ? WHERE guild = ?', (canal, ctx.guild.id,))
+            else:
+                await cursor.execute('INSERT INTO welcome (channel_text, guild) VALUES (?, ?)', (canal, ctx.guild.id,))
+        await db.commit()
+    await ctx.send('El canal de texto a sido guardado con exito!')
+    
+
+#MiniGames
+
+jugador = ""
+jugador2 = ""
+turn = ""
+gameOver = True
+
+board = []
+
+winningConditions = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6]
+]
+
+@Bot.command()
+async def game(ctx, p1: discord.Member, p2: discord.Member):
+    global count
+    global jugador
+    global jugador2
+    global turn
+    global gameOver
+
+    if gameOver:
+        global board
+        board = [":white_large_square:", ":white_large_square:", ":white_large_square:",
+                 ":white_large_square:", ":white_large_square:", ":white_large_square:",
+                 ":white_large_square:", ":white_large_square:", ":white_large_square:"]
+        turn = ""
+        gameOver = False
+        count = 0
+
+        jugador2 = p2
+        jugador = p1
+
+        # print the board
+        line = ""
+        for x in range(len(board)):
+            if x == 2 or x == 5 or x == 8:
+                line += " " + board[x]
+                await ctx.send(line)
+                line = ""
+            else:
+                line += " " + board[x]
+
+        # determine who goes first
+        num = random.randint(1, 2)
+        if num == 1:
+            turn = jugador
+            await ctx.send("It is <@" + str(jugador.id) + ">Tu turno.")
+        elif num == 2:
+            turn = jugador2
+            await ctx.send("<@" + str(jugador2.id) + ">Tu turno.")
+    else:
+        await ctx.send("¡Ya hay un juego en progreso! Termínalo antes de empezar uno nuevo.")
+
+@Bot.command()
+async def lugar(ctx, pos: int):
+    global turn
+    global jugador
+    global jugador2
+    global board
+    global count
+    global gameOver
+
+    if not gameOver:
+        mark = ""
+        if turn == ctx.author:
+            if turn == jugador:
+                mark = ":regional_indicator_x:"
+            elif turn == jugador2:
+                mark = ":o2:"
+            if 0 < pos < 10 and board[pos - 1] == ":white_large_square:" :
+                board[pos - 1] = mark
+                count += 1
+
+                # print the board
+                line = ""
+                for x in range(len(board)):
+                    if x == 2 or x == 5 or x == 8:
+                        line += " " + board[x]
+                        await ctx.send(line)
+                        line = ""
+                    else:
+                        line += " " + board[x]
+
+                checkWinner(winningConditions, mark)
+                print(count)
+                if gameOver == True:
+                    await ctx.send(mark + " Gano!")
+                elif count >= 9:
+                    gameOver = True
+                    await ctx.send("¡Es un empate!")
+
+                # switch turns
+                if turn == jugador:
+                    turn = jugador2
+                elif turn == jugador2:
+                    turn = jugador
+            else:
+                await ctx.send("Asegúrese de elegir un número entero entre 1 y 9 y un mosaico sin marcar.")
+        else:
+            await ctx.send("no es tu turno.")
+    else:
+        await ctx.send("Inicie un nuevo juego usando el comando: !game")
+
+
+def checkWinner(winningConditions, mark):
+    global gameOver
+    for condition in winningConditions:
+        if board[condition[0]] == mark and board[condition[1]] == mark and board[condition[2]] == mark:
+            gameOver = True
+
+@game.error
+async def tictactoe_error(ctx, error):
+    print(error)
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send("Mencione 2 jugadores para este comando.")
+    elif isinstance(error, commands.BadArgument):
+        await ctx.send("Por favor asegúrate de mencionar / hacer ping a los jugadores (ie. <@688534433879556134>).")
+
+@lugar.error
+async def place_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send("Ingrese una posición que le gustaría marcar.")
+    elif isinstance(error, commands.BadArgument):
+        await ctx.send("Por favor asegúrese de ingresar un número entero.")
+
+
 
 
 #Help_bot
@@ -269,6 +404,10 @@ async def help(ctx):
     embed.add_field(name="calc", value="Crea una calculadora con botones")
     embed.add_field(name="user_info", value="Proporciona informacion sobre un usuario")
     embed.add_field(name="invite", value=f"Con el puedes invitar a {Bot.user} en otro servidor")
+    embed.add_field(name="game", value="utilizalo para jugar 3 en raya o conocido en algunos paises como gato")
+    embed.add_field(name="lugar", value="utilizalo despues de !game para poner en casilla, Ejemplo: !game !lugar 3")
+    embed.add_field(name="configbienvenida", value="Configura el canal de texto introducido para las bienvenidas, Puedes mencionar el canal o poner su id para estableserlo como canal de bienvenidas")
+    embed.set_footer(text=f"{ctx.message.author.name} Estos son los comandos de {Bot.user.name}")
     embed.set_author(name=Bot.user, icon_url=Bot.user.avatar_url)
     embed.set_thumbnail(url=Bot.user.avatar_url)
     await ctx.send(embed=embed)
