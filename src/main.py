@@ -1,7 +1,5 @@
-from turtle import title
 import discord
 from discord.ext import commands
-from numpy import character
 import keep_alive
 import time
 from discord_components import *
@@ -11,26 +9,47 @@ from urllib import parse, request
 import re
 import urllib.request
 import json
+import os
+from dotenv import load_dotenv
 
-token = "OTMzODYwNDczMDY4MTk1OTAw.YenrVw.lqdPF4IiMHxieBZ5wR4nCk8LT9w"
-key = "AIzaSyAkBNWaoKYje04FdCZh_fKyzX8bGPwQACw"
+load_dotenv()
+
 intents = discord.Intents.default()
 intents.members = True
 intents.guild_reactions = True
 intents.guild_messages = True
 intents.messages = True
+
 Bot = commands.Bot(command_prefix='!', description="This is a Helper Bot")
 
+#extras
+
+@Bot.remove_command('help')
 
 #Commands
+
+@Bot.command()
+async def bot_info(ctx):
+    embed = discord.Embed(title=f"Informacion sobre {Bot.user}", url='https://discord.com/api/oauth2/authorize?client_id=933860473068195900&permissions=8&scope=bot', description=f"Informacion sobre el Bot {Bot.user.name}", color=discord.Color.green())
+    embed.add_field(name="Nombre", value=f"{Bot.user.name}")
+    embed.add_field(name="Bot creado por", value="♞!i~𝞚ℝⱮ𝞓𝞟🅓𝞨;..♟#7094")
+    embed.add_field(name="ID Del Bot", value=f"{Bot.user.id}")
+    embed.add_field(name="Version del Bot", value=f"{os.getenv('version')}")
+    embed.set_footer(text=f"{ctx.message.author.name} Esperamos que te aya servido esta informacion")
+    embed.set_thumbnail(url=Bot.user.avatar_url)
+    embed.set_author(name=Bot.user, icon_url=Bot.user.avatar_url)
+    
+    await ctx.send(embed=embed)
 
 @Bot.command()
 async def invite(ctx):
     embed = discord.Embed(title=f"Click aqui para invitar a {Bot.user}", url='https://discord.com/api/oauth2/authorize?client_id=933860473068195900&permissions=8&scope=bot', desciption=".", color=discord.Colour.green())
     embed.set_author(name=Bot.user, icon_url=Bot.user.avatar_url)
+    embed.set_footer(text=f"{ctx.message.author.name}Agrega a {Bot.user.name} a tu servidor :)")
+    embed.set_thumbnail(url=ctx.message.author.avatar_url)
     await ctx.send(embed=embed)
     
-    
+
 @Bot.command()
 async def calc(ctx):
     m = await ctx.send(content='Cargando calculadora...')
@@ -69,12 +88,14 @@ async def user_info(ctx, user=None):
 
 @Bot.command(name='subs')
 async def subscriptores(ctx,username):
-    data = urllib.request.urlopen("https://www.googleapis.com/youtube/v3/channels?part=statistics&forUsername=" + username + "&key=" + key).read()
+    K = os.getenv('key')
+    data = urllib.request.urlopen("https://www.googleapis.com/youtube/v3/channels?part=statistics&forUsername=" + username + "&key=" + K).read()
     subs = json.loads(data)["items"][0]["statistics"]["subscriberCount"]
     response = username + " tiene " + "{:,d}".format(int(subs)) + " suscriptores!"
     embed = discord.Embed(title=f"Subs de {username}:", description=f"{response}", color=discord.Colour.red())
     embed.set_thumbnail(url="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/YouTube_social_white_squircle.svg/2048px-YouTube_social_white_squircle.svg.png")
     await ctx.send(embed=embed)
+
 
 @Bot.command()
 async def sumar(ctx, num1,num2):
@@ -82,11 +103,13 @@ async def sumar(ctx, num1,num2):
     embed = discord.Embed(title="Respuesta", description=f"{num1} + {num2} = {response}", color=discord.Color.green())
     await ctx.send(embed=embed)
 
+
 @Bot.command()
 async def multiplicar(ctx, num1,num2):
     response = int(num1)*int(num2)
     embed = discord.Embed(title="Respuesta", description=f"{num1} X {num2} = {response}", color=discord.Color.green())
     await ctx.send(embed=embed)
+
 
 @Bot.command()
 async def youtube(ctx, *, search):
@@ -96,13 +119,14 @@ async def youtube(ctx, *, search):
     print(search_results)
     await ctx.send('https://www.youtube.com/watch?v=' + search_results[0])
     
+    
 @Bot.command()
 async def server_info(ctx):
     role_count = len(ctx.guild.roles)
     list_of_bots = [bot.mention for bot in  ctx.guild.members if bot.bot]
     
-    embed = discord.Embed(title=f"{ctx.guild.name}", description="Server info", timestamp=datetime.datetime.utcnow(), color=discord.Colour.blue())
-    embed.add_field(name="Name", value=f"{ctx.guild.name}")
+    embed = discord.Embed(title=f"{ctx.guild.name} Server Info", description="Server info", timestamp=datetime.datetime.utcnow(), color=discord.Colour.blue())
+    embed.add_field(name="Nombre", value=f"{ctx.guild.name}")
     embed.add_field(name="Servidor creado el", value=f"{ctx.guild.created_at}")
     embed.add_field(name="nivel de verificación", value=str(ctx.guild.verification_level))
     embed.add_field(name="Server Owner", value=f"{ctx.guild.owner}")
@@ -128,16 +152,19 @@ async def discord_nitro(ctx):
   interaction = await Bot.wait_for("button_click", check = lambda i: i.custom_id == "boton1")
   await interaction.send(content = "Never gonna give you up \n https://youtu.be/dQw4w9WgXcQ")
 
+
 @Bot.command(pass_context=True)
 async def hola(ctx):
     Mensage = ctx.message
-    await ctx.send(f"Hola {Mensage.author.name}")
+    await ctx.send(f"Hola {Mensage.author.mention}")
+    
     
 @Bot.command(pass_context=True)
 async def secret( ctx, *, arg):
     Mensage = ctx.message
     await Mensage.delete()
     await ctx.send(arg)
+
 
 @Bot.command(pass_context=True)
 async def ping(ctx):
@@ -146,6 +173,7 @@ async def ping(ctx):
     ping1 = (time.monotonic() - antes)*1000
     ping2 =(str(ping1).split('.'))[0]
     await mensage.edit(content="pong! (" + ping2 + "ms)")
+    
     
 @Bot.command(pass_context=True)
 async def stop_bot_131408(ctx):
@@ -172,7 +200,8 @@ async def on_command_error(ctx, error):
 async def on_ready():
     await Bot.change_presence(activity=discord.Streaming(name="Python and Gaming", url="http://www.twitch.tv/k1ngag"))
     print("+===============================+")
-    print(f"the bot {Bot.user} Ready")
+    print(f"The Bot {Bot.user} Ready")
+    print(f"Bot Version {os.getenv('version')}")
     print(f"ID: {Bot.user.id}")
     print("+===============================+")
     
@@ -224,7 +253,7 @@ def calculate(exp):
 #Help_bot
 
 @Bot.command()
-async def help_bot(ctx):
+async def help(ctx):
     comandos = "Prefijo del bot: \n ! o /  "
     embed = discord.Embed(title=Bot.user, url='https://discord.com/api/oauth2/authorize?client_id=933860473068195900&permissions=8&scope=bot', desciption=comandos, color=discord.Colour.blue())
     embed.add_field(name="Comandos: \n   help", value="Sirve para pedir ayuda sobre el bot \n Ya sea sobre comandos, informacion o funciones.")
@@ -278,5 +307,6 @@ async def on_message(msg):
         return
     await Bot.process_commands(msg)
 
+
 keep_alive.keep_alive()
-Bot.run(token)
+Bot.run(os.getenv('token'))
