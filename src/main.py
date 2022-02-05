@@ -1,34 +1,100 @@
 import discord
 from discord.ext import commands
 import keep_alive
-from discord_components import *
 import asyncio
 import datetime
 from urllib import parse, request
 import re
 import urllib.request
 import json
-import os
 from dotenv import load_dotenv
 import random
 import aiosqlite
+from colorama import Fore
+from colorama import Style
 
 load_dotenv()
 
+token = "OTMzODYwNDczMDY4MTk1OTAw.YenrVw.lqdPF4IiMHxieBZ5wR4nCk8LT9w"
+
+key = "AIzaSyAkBNWaoKYje04FdCZh_fKyzX8bGPwQACw"
+
+version = "1.0.6"
 intents = discord.Intents.default()
 intents.members = True
 intents.guild_reactions = True
 intents.guild_messages = True
 intents.messages = True
 
-Bot = commands.Bot(command_prefix='!', intents=intents, description="This is a Helper Bot")
+def get_prefix(Bot, message):
+    with open('json/prefixes.json', 'r') as f:
+        prefixes = json.load(f)
+        
+        return prefixes[str(message.guild.id)]
 
-#extras
+Bot = commands.Bot(command_prefix = get_prefix, intents=intents, description="Default prefix: !")
+
+
+#CustomPrefix
+
+@Bot.event
+async def on_guild_join(guild):
+    with open('json/prefixes.json', 'r') as f:
+        prefixes = json.load(f)
+        
+    prefixes[str(guild.id)] = '!'
+    
+    with open('json/prefixes.json', 'w')as f:
+        
+        json.dump(prefixes, f, indent=4)
+        
+@Bot.event
+async def on_guild_remove(guild):
+    with open('json/prefixes.json', 'r+') as f:
+        prefixes = json.load(f)
+        
+        prefixes.pop(str(guild.id))
+    
+        with open('json/prefixes.json', 'w')as f:
+            json.dump(prefixes, f)
+    
+
+@Bot.command()
+@commands.has_permissions(administrator=True)
+async def prefix(ctx, prefix):
+    with open('json/prefixes.json', 'r') as f:
+        prefixes = json.load(f)
+        
+    prefixes[str(ctx.guild.id)] = prefix
+    
+    with open('json/prefixes.json', 'w')as f:
+        json.dump(prefixes, f)
+    await ctx.send(f'El nuevo prefijo es {prefix}')
+    pree = prefix
+        
+
+        
+
+#Extras
 
 @Bot.remove_command('help')
 
-
 #Commands
+
+@Bot.command()
+async def user_info(ctx, *, member: discord.Member):
+    embed = discord.Embed(title=f"Informacion sobre {member}", color=discord.Color.blue())
+    embed.add_field(name="Nombre", value=member.name)
+    embed.add_field(name="ID", value=member.id)
+    embed.add_field(name="Se creo el", value=member.created_at)
+    embed.add_field(name="Se unio el", value=member.joined_at)
+    
+    await ctx.send(embed=embed)
+
+
+@Bot.command()
+async def web(ctx):
+    await ctx.send("https://bot.k1ngdev-server.repl.co")
 
 @Bot.command()
 async def bot_info(ctx):
@@ -36,7 +102,7 @@ async def bot_info(ctx):
     embed.add_field(name="Nombre", value=f"{Bot.user.name}")
     embed.add_field(name="Bot creado por", value="♞!i~𝞚ℝⱮ𝞓𝞟🅓𝞨;..♟#7094")
     embed.add_field(name="ID Del Bot", value=f"{Bot.user.id}")
-    embed.add_field(name="Version del Bot", value=f"{os.getenv('version')}")
+    embed.add_field(name="Version del Bot", value=f"{version}")
     embed.add_field(name="Ping del Bot", value=f'{round (Bot.latency * 1000)}ms')
     embed.set_footer(text=f"{ctx.message.author.name} Esperamos que te aya servido esta informacion")
     embed.set_thumbnail(url=Bot.user.avatar_url)
@@ -51,18 +117,11 @@ async def invite(ctx):
     embed.set_footer(text=f"{ctx.message.author.name}Agrega a {Bot.user.name} a tu servidor :)")
     embed.set_thumbnail(url=ctx.message.author.avatar_url)
     await ctx.send(embed=embed)
-    
 
-
-@Bot.command(name='user_info')
-async def user_info(ctx, user=None):
-    await ctx.send("COMANDO EN REPARACION")
-    
 
 @Bot.command(name='subs')
 async def subscriptores(ctx,username):
-    K = os.getenv('key')
-    data = urllib.request.urlopen("https://www.googleapis.com/youtube/v3/channels?part=statistics&forUsername=" + username + "&key=" + K).read()
+    data = urllib.request.urlopen("https://www.googleapis.com/youtube/v3/channels?part=statistics&forUsername=" + username + "&key=" + key).read()
     subs = json.loads(data)["items"][0]["statistics"]["subscriberCount"]
     response = username + " tiene " + "{:,d}".format(int(subs)) + " suscriptores!"
     embed = discord.Embed(title=f"Subs de {username}:", description=f"{response}", color=discord.Colour.red())
@@ -81,6 +140,20 @@ async def sumar(ctx, num1,num2):
 async def multiplicar(ctx, num1,num2):
     response = int(num1)*int(num2)
     embed = discord.Embed(title="Respuesta", description=f"{num1} X {num2} = {response}", color=discord.Color.green())
+    await ctx.send(embed=embed)
+    
+    
+@Bot.command()
+async def dividir(ctx, num1,num2):
+    response = int(num1)/int(num2)
+    embed = discord.Embed(title="Respuesta", description=f"{num1} ÷ {num2} = {response}", color=discord.Color.green())
+    await ctx.send(embed=embed)
+
+
+@Bot.command()
+async def restar(ctx, num1,num2):
+    response = int(num1)-int(num2)
+    embed = discord.Embed(title="Respuesta", description=f"{num1} - {num2} = {response}", color=discord.Color.green())
     await ctx.send(embed=embed)
 
 
@@ -114,17 +187,6 @@ async def server_info(ctx):
     embed.set_thumbnail(url=ctx.guild.icon_url)
     await ctx.send(embed=embed)
     
- 
-@Bot.command(pass_context=True)
-async def discord_nitro(ctx):
-  await ctx.send(
-        "JIJIJIJA",
-        components = [
-            Button(label = "apreta para discord nitro gratis", custom_id = "boton1")
-        ]
-    )
-  interaction = await Bot.wait_for("button_click", check = lambda i: i.custom_id == "boton1")
-  await interaction.send(content = "Never gonna give you up \n https://youtu.be/dQw4w9WgXcQ")
 
 
 @Bot.command(pass_context=True)
@@ -138,11 +200,6 @@ async def secret( ctx, *, arg):
     Mensage = ctx.message
     await Mensage.delete()
     await ctx.send(arg)
-
-
-@Bot.command(pass_context=True)
-async def ping(ctx):
-    await ctx.send(f'Pong! ({round (Bot.latency * 1000)}ms)')
     
     
 @Bot.command(pass_context=True)
@@ -155,47 +212,51 @@ async def name_edit(ctx, usuario:discord.Member, Nick):
     await usuario.edit(nick=Nick)
     
 
+#SysCommands
+
+
+@Bot.command(pass_context=True)
+async def ping(ctx):
+    await ctx.send(f'Pong! ({round (Bot.latency * 1000)}ms)')
+    
+
+@Bot.command(pass_context=True)
+async def save(ctx, save:str):
+    save = ' '.join(save)
+    with open('json/database.json', "r+") as f:
+        database = json.load(f)
+    database[str(ctx.author.id)] = str(save)
+    with open('json/database.json', "r+") as f:
+        json.dump(database, f)
+    await ctx.send("Texto Guardado en Database.json")
+    
+
 #events
-
-
-
 
 @Bot.event
 async def on_ready():
-    async with aiosqlite.connect('server.db') as db:
+    async with aiosqlite.connect('server/server.db') as db:
         async with db.cursor() as cursor:
             await cursor.execute('CREATE TABLE IF NOT EXISTS welcome (channel_text ID, guild ID)')
         await db.commit()
-        
-        
-    await Bot.change_presence(activity=discord.Streaming(name="Python and Gaming", url="http://www.twitch.tv/k1ngag"))
-    print("+===============================+")
-    print(f"The Bot {Bot.user} Ready")
-    print(f"Bot Version {os.getenv('version')}")
-    print(f"ID: {Bot.user.id}")
-    print("open database = True")
-    print("+===============================+")
-    
-@Bot.event
-async def on_command_error(ctx, error):
-    erp = ("Ocurrio un error, El error es:")
-    embed = discord.Embed(title="Error", description="Problablemente ese comando no existe o esta mal escrito, Utiliza !help para ver los comandos", color=discord.Color.red())
-    embed.set_footer(text=f"{ctx.message.author.name} Vuelve a intentarlo")
-    embed.set_author(name=f"{Bot.user.name}", icon_url=f"{Bot.user.avatar_url}")
-    embed.set_thumbnail(url=f"{ctx.message.author.avatar_url}")
-    await ctx.send(embed=embed)
-    
-    print("+-----------------------------------------------------------------------------+")
-    print(erp, error)
-    print("+-----------------------------------------------------------------------------+")
-    
 
+        
+    await Bot.change_presence(activity=discord.Game(name="Utiliza !help comandos",))
+    print(Fore.WHITE + "+===============================+" + Style.RESET_ALL)
+    print(Fore.GREEN + "---BOT ONLINE---" + Style.RESET_ALL)
+    print(f"{Fore.GREEN} The Bot {Bot.user} Ready {Style.RESET_ALL}")
+    print(f"{Fore.WHITE} Bot Version {version} {Style.RESET_ALL}")
+    print(f"{Fore.WHITE} ID: {Bot.user.id} {Style.RESET_ALL}")
+    print(f"{Fore.CYAN} Open Server.db = True {Style.RESET_ALL}")
+    print(f"{Fore.YELLOW} Open databases.json = True {Style.RESET_ALL}") 
+    print(Fore.WHITE + "+===============================+" + Style.RESET_ALL)
+    
 
 #Bienvenidas
 
 @Bot.event
 async def on_member_join(member):
-    async with aiosqlite.connect('server.db') as db:
+    async with aiosqlite.connect('server/server.db') as db:
         async with db.cursor() as cursor:
             await cursor.execute('SELECT channel_text FROM welcome WHERE guild = ?', (member.guild.id,))
             data = await cursor.fetchone()
@@ -219,7 +280,7 @@ async def on_member_join(member):
 @Bot.command(name='configbienvenida')
 async def bienvenidac(ctx, canal=None):
     if not canal:
-        async with aiosqlite.connect('server.db') as db:
+        async with aiosqlite.connect('server/server.db') as db:
             async with db.cursor() as cursor:
                 await cursor.execute('SELECT channel_text FROM welcome WHERE guild = ?', (ctx.guild.id,))
                 data = await cursor.fetchone()
@@ -237,7 +298,7 @@ async def bienvenidac(ctx, canal=None):
         canal = int(canal)
     except:
         return await ctx.send('El ID no es valido')
-    async with aiosqlite.connect('server.db') as db:
+    async with aiosqlite.connect('server/server.db') as db:
         async with db.cursor() as cursor:
             await cursor.execute('SELECT channel_text FROM welcome WHERE guild = ?', (ctx.guild.id,))
             data = await cursor.fetchone()
@@ -248,6 +309,14 @@ async def bienvenidac(ctx, canal=None):
         await db.commit()
     await ctx.send('El canal de texto a sido guardado con exito!')
     
+
+#AutoRole
+
+@Bot.event
+async def on_member_join(ctx):
+    role = discord.utils.get(ctx.guild.roles, name = 'nuevo')
+    await ctx.add_roles(role)
+
 
 #MiniGames
 
@@ -367,51 +436,45 @@ def checkWinner(winningConditions, mark):
         if board[condition[0]] == mark and board[condition[1]] == mark and board[condition[2]] == mark:
             gameOver = True
 
-@game.error
-async def tictactoe_error(ctx, error):
-    print(error)
-    if isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send("Mencione 2 jugadores para este comando.")
-    elif isinstance(error, commands.BadArgument):
-        await ctx.send("Por favor asegúrate de mencionar / hacer ping a los jugadores (ie. <@688534433879556134>).")
-
-@lugar.error
-async def place_error(ctx, error):
-    if isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send("Ingrese una posición que le gustaría marcar.")
-    elif isinstance(error, commands.BadArgument):
-        await ctx.send("Por favor asegúrese de ingresar un número entero.")
-
-
-
 
 #Help_bot
 
 @Bot.command()
-async def help(ctx):
+async def help(ctx, arg):
     comandos = "Prefijo del bot: \n ! o /  "
-    embed = discord.Embed(title=Bot.user, url='https://discord.com/api/oauth2/authorize?client_id=933860473068195900&permissions=8&scope=bot', desciption=comandos, color=discord.Colour.blue())
-    embed.add_field(name="Comandos: \n   help", value="Sirve para pedir ayuda sobre el bot \n Ya sea sobre comandos, informacion o funciones.")
-    embed.add_field(name="name_edit", value=f"Cambia el nombre del etiquetado, ejemplo: !name_edit @{Bot.user}")
-    embed.add_field(name="secret", value="Manda un mensaje sin nombre del autor")
-    embed.add_field(name="discord_nitro", value="Pruebalo...")
-    embed.add_field(name="hola", value="Saludas al bot")
-    embed.add_field(name="server_info", value=f"Proporciona informacion sobre el servidor {ctx.guild.name}")
-    embed.add_field(name="subs", value="Proporciona el numero de subscriptores, Ejemplo: !subs HolaSoyGerman")
-    embed.add_field(name="youtube", value="Funciona como un buscador de youtube")
-    embed.add_field(name="sumar", value="Suma 2 numeros diferentes")
-    embed.add_field(name="multiplicar", value="Multiplica 2 numeros diferentes")
-    embed.add_field(name="calc", value="Crea una calculadora con botones")
-    embed.add_field(name="user_info", value="Proporciona informacion sobre un usuario")
-    embed.add_field(name="invite", value=f"Con el puedes invitar a {Bot.user} en otro servidor")
-    embed.add_field(name="game", value="utilizalo para jugar 3 en raya o conocido en algunos paises como gato")
-    embed.add_field(name="lugar", value="utilizalo despues de !game para poner en casilla, Ejemplo: !game !lugar 3")
-    embed.add_field(name="configbienvenida", value="Configura el canal de texto introducido para las bienvenidas, Puedes mencionar el canal o poner su id para estableserlo como canal de bienvenidas")
-    embed.set_footer(text=f"{ctx.message.author.name} Estos son los comandos de {Bot.user.name}")
-    embed.set_author(name=Bot.user, icon_url=Bot.user.avatar_url)
-    embed.set_thumbnail(url=Bot.user.avatar_url)
-    await ctx.send(embed=embed)
-
+    if arg == "comandos":
+        embed = discord.Embed(title=Bot.user, url='https://discord.com/api/oauth2/authorize?client_id=933860473068195900&permissions=8&scope=bot', desciption=comandos, color=discord.Colour.blue())
+        embed.add_field(name="Comandos: \n   help", value="Sirve para pedir ayuda sobre el bot \n Ya sea sobre comandos, informacion o funciones.")
+        embed.add_field(name="name_edit", value=f"Cambia el nombre del etiquetado, ejemplo: !name_edit @{Bot.user}")
+        embed.add_field(name="secret", value="Manda un mensaje sin nombre del autor")
+        embed.add_field(name="hola", value="Saludas al bot")
+        embed.add_field(name="server_info", value=f"Proporciona informacion sobre el servidor {ctx.guild.name}")
+        embed.add_field(name="subs", value="Proporciona el numero de subscriptores, Ejemplo: !subs HolaSoyGerman")
+        embed.add_field(name="youtube", value="Funciona como un buscador de youtube")
+        embed.add_field(name="sumar", value="Suma 2 numeros diferentes")
+        embed.add_field(name="multiplicar", value="Multiplica 2 numeros diferentes")
+        embed.add_field(name="dividir", value="Divide 2 numeros diferentes")
+        embed.add_field(name="restar", value="Resta 2 numeros diferentes")
+        embed.add_field(name="user_info", value="Proporciona informacion sobre un usuario")
+        embed.add_field(name="invite", value=f"Con el puedes invitar a {Bot.user} en otro servidor")
+        embed.add_field(name="game", value="Utilizalo para jugar 3 en raya o conocido en algunos paises como gato")
+        embed.add_field(name="lugar", value="Utilizalo despues de !game para poner en casilla, Ejemplo: !game !lugar 3")
+        embed.add_field(name="prefix", value="Utilizalo para cambia el prefijo del Bot")
+    
+        embed.add_field(name="configbienvenida", value="Configura el canal de texto introducido para las bienvenidas, Puedes mencionar el canal o poner su id para estableserlo como canal de bienvenidas")
+        embed.set_footer(text=f"{ctx.message.author.name} Estos son los comandos de {Bot.user.name}")
+        embed.set_author(name=Bot.user, icon_url=Bot.user.avatar_url)
+        embed.set_thumbnail(url=Bot.user.avatar_url)
+        await ctx.send(embed=embed)
+    
+@help.error
+async def help(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        embed1 = discord.Embed(title=Bot.user, url='https://discord.com/api/oauth2/authorize?client_id=933860473068195900&permissions=8&scope=bot', desciption="Requirements", color=discord.Colour.blue())
+        embed1.add_field(name="Requirements", value=f"Para que {Bot.user} funcione al 100% nesesitas: \n Crear un Rol llamado: nuevo")
+        embed1.add_field(name="Comandos", value=" para ver los comandos utiliza el comando: help comandos")
+        
+        await ctx.send(embed=embed1)
 
 #Anti spam
 
@@ -447,5 +510,63 @@ async def on_message(msg):
     await Bot.process_commands(msg)
 
 
+#Errors
+
+@Bot.event
+async def on_command_error(ctx, error,):
+    erp = ("Ocurrio un error, El error es:")
+    
+    
+    if isinstance(error, commands.CommandNotFound):
+        embed = discord.Embed(title="Error", description=f"{ctx.message.content} No es un comando valido, Utiliza !help para ver los comandos", color=discord.Color.red())
+        embed.set_footer(text=f"{ctx.message.author.name} Vuelve a intentarlo")
+        embed.set_author(name=f"{Bot.user.name}", icon_url=f"{Bot.user.avatar_url}")
+        embed.set_thumbnail(url=f"{ctx.message.author.avatar_url}")
+        await ctx.send(embed=embed)
+    
+    
+    print("+-----------------------------------------------------------------------------+")
+    print(erp, error)
+    print("+-----------------------------------------------------------------------------+")
+
+
+@subscriptores.error
+async def subscriptores(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        embed=discord.Embed(title="Error", description="Ingresa el nombre del Youtuber, Recuerda que solo funciona con Youtubers Verificados", color=discord.Color.red)
+        embed.set_author(name=f"{Bot.user.name}", icon_url=f"{Bot.user.avatar_url}")
+        await ctx.send(embed=embed)
+        
+    
+@game.error
+async def game(ctx, error):
+    print(error)
+    if isinstance(error, commands.MissingRequiredArgument):
+        embed=discord.Embed(title="Error", description="Mencione 2 jugadores para este comando.", color=discord.Color.red())
+        await ctx.send(embed=embed)
+    elif isinstance(error, commands.BadArgument):
+        embed1=discord.Embed(title="Error", description="Por favor asegúrate de mencionar / hacer ping a los jugadores.", color=discord.Color.red())
+        await ctx.send(embed=embed1)
+
+@lugar.error
+async def lugar(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        embed=discord.Embed(title="Error", description="Ingrese una posición que le gustaría marcar.", color=discord.Color.red())
+        await ctx.send(embed=embed)
+    elif isinstance(error, commands.BadArgument):
+        embed1=discord.Embed(title="Error", description="Por favor asegúrese de ingresar un número entero.", color=discord.Color.red())
+        await ctx.send(embed=embed1)
+
+
+@prefix.error
+async def prefix(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        embed=discord.Embed(title="Error", description="Ingrese un prefijo", color=discord.Color.red())
+        await ctx.send(embed=embed)
+        
+        
+#RunBot
+
+
 keep_alive.keep_alive()
-Bot.run(os.getenv('token'))
+Bot.run(token)
