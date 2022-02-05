@@ -1,3 +1,4 @@
+import os
 import discord
 from discord.ext import commands
 import keep_alive
@@ -15,11 +16,10 @@ from colorama import Style
 
 load_dotenv()
 
-token = "OTMzODYwNDczMDY4MTk1OTAw.YenrVw.lqdPF4IiMHxieBZ5wR4nCk8LT9w"
+token = os.environ['token']
+key = os.environ['key']
+version = os.environ['version']
 
-key = "AIzaSyAkBNWaoKYje04FdCZh_fKyzX8bGPwQACw"
-
-version = "1.0.6"
 intents = discord.Intents.default()
 intents.members = True
 intents.guild_reactions = True
