@@ -1,4 +1,6 @@
 __pycache__
 .env
+json/
+server/
 json
 server
