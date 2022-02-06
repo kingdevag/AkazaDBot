@@ -1,9 +1,5 @@
 __pycache__
 .env
-json/
-server/
-json
-server
 database.json
 prefixes.json
 server.db
