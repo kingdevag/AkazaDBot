@@ -31,8 +31,9 @@ Akaza is a Feature-rich Discord Bot, Works for Moderating as well as Entertainin
 ![Alpine](https://img.shields.io/badge/Alpine_Linux-0D597F?style=for-the-badge&logo=alpine-linux&logoColor=white0)
 ![arch](https://img.shields.io/badge/Arch_Linux-1793D1?style=for-the-badge&logo=arch-linux&logoColor=white)
 
-#### **Licence**
-![LC](https://img.shields.io/github/license/{kingdevag}/{repo-name}.svg)
+#### **Project Information**
+![LC](https://img.shields.io/github/license/kingdevag/AkazaDBot.svg)
+![P](https://badge-size.herokuapp.com/{username}/{repo}/{branch}/{filename})
 ___
 ![PY](http://ForTheBadge.com/images/badges/made-with-python.svg)
 ![DBL](http://ForTheBadge.com/images/badges/built-by-developers.svg)\
