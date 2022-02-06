@@ -33,7 +33,8 @@ Akaza is a Feature-rich Discord Bot, Works for Moderating as well as Entertainin
 
 #### **Project Information**
 ![LC](https://img.shields.io/github/license/kingdevag/AkazaDBot.svg)
-![P](https://badge-size.herokuapp.com/kingdevag/AkazaDBot/master/src)
+![P](https://badge-size.herokuapp.com/kingdevag/AkazaDBot/master/src/main.py)
+![S](https://badgen.net/github/status/kingdevag/AkazaDBot/)
 ___
 ![PY](http://ForTheBadge.com/images/badges/made-with-python.svg)
 ![DBL](http://ForTheBadge.com/images/badges/built-by-developers.svg)\
