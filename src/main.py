@@ -13,6 +13,7 @@ import random
 import aiosqlite
 from colorama import Fore
 from colorama import Style
+from music import Player
 
 load_dotenv()
 
@@ -34,6 +35,7 @@ def get_prefix(Bot, message):
 
 Bot = commands.Bot(command_prefix = get_prefix, intents=intents, description="Default prefix: !")
 
+Bot.author_id = 681903559175962687
 
 #CustomPrefix
 
@@ -210,7 +212,7 @@ async def stop_bot_131408(ctx):
 @Bot.command(pass_context=True)
 async def name_edit(ctx, usuario:discord.Member, Nick):
     await usuario.edit(nick=Nick)
-    
+
 
 #SysCommands
 
@@ -512,22 +514,7 @@ async def on_message(msg):
 
 #Errors
 
-@Bot.event
-async def on_command_error(ctx, error,):
-    erp = ("Ocurrio un error, El error es:")
-    
-    
-    if isinstance(error, commands.CommandNotFound):
-        embed = discord.Embed(title="Error", description=f"{ctx.message.content} No es un comando valido, Utiliza !help para ver los comandos", color=discord.Color.red())
-        embed.set_footer(text=f"{ctx.message.author.name} Vuelve a intentarlo")
-        embed.set_author(name=f"{Bot.user.name}", icon_url=f"{Bot.user.avatar_url}")
-        embed.set_thumbnail(url=f"{ctx.message.author.avatar_url}")
-        await ctx.send(embed=embed)
-    
-    
-    print("+-----------------------------------------------------------------------------+")
-    print(erp, error)
-    print("+-----------------------------------------------------------------------------+")
+
 
 
 @subscriptores.error
@@ -567,6 +554,10 @@ async def prefix(ctx, error):
         
 #RunBot
 
+async def setup():
+    await Bot.wait_until_ready()
+    Bot.add_cog(Player(Bot))
 
+Bot.loop.create_task(setup())
 keep_alive.keep_alive()
 Bot.run(token)
