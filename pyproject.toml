@@ -1,8 +1,8 @@
 [tool.poetry]
-name = "repl_python3_bot"
-version = "0.1.0"
-description = ""
-authors = ["Your Name <you@example.com>"]
+name = "akaza_discord_bot"
+version = "1.0.6"
+description = "Akaza is a Feature-rich Discord Bot, Works for Moderating as well as Entertaining on your Discord Server."
+authors = ["K1ngDev <j.armando140208g@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
