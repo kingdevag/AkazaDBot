@@ -1,0 +1,6 @@
+root: ./
+title: 'Akaza'
+description: 'Akaza is a Feature-rich Discord Bot, Works for Moderating as well as Entertaining on your Discord Server.'
+structure:
+    readme: ./README.md
+    summary: .docs/SUMMARY.md
