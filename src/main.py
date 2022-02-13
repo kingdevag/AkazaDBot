@@ -1,19 +1,28 @@
+#Imports
+import nextcord
 import os
-import discord
-from discord.ext import commands
 import keep_alive
 import asyncio
 import datetime
-from urllib import parse, request
 import re
 import urllib.request
 import json
-from dotenv import load_dotenv
 import random
 import aiosqlite
+
+#From-Import
+from nextcord.ext import commands
+from nextcord import *
+from dotenv import load_dotenv
+from urllib import parse, request
 from colorama import Fore
 from colorama import Style
-from music import Player
+
+#CogsImports
+from modules.music import Player
+from modules.help import *
+from modules.funcommands import funcommands
+
 
 load_dotenv()
 
@@ -21,7 +30,7 @@ token = os.environ['token']
 key = os.environ['key']
 version = os.environ['version']
 
-intents = discord.Intents.default()
+intents = nextcord.Intents.default()
 intents.members = True
 intents.guild_reactions = True
 intents.guild_messages = True
@@ -84,8 +93,8 @@ async def prefix(ctx, prefix):
 #Commands
 
 @Bot.command()
-async def user_info(ctx, *, member: discord.Member):
-    embed = discord.Embed(title=f"Informacion sobre {member}", color=discord.Color.blue())
+async def user_info(ctx, *, member: nextcord.Member):
+    embed = nextcord.Embed(title=f"Informacion sobre {member}", color=nextcord.Color.blue())
     embed.add_field(name="Nombre", value=member.name)
     embed.add_field(name="ID", value=member.id)
     embed.add_field(name="Se creo el", value=member.created_at)
@@ -100,24 +109,24 @@ async def web(ctx):
 
 @Bot.command()
 async def bot_info(ctx):
-    embed = discord.Embed(title=f"Informacion sobre {Bot.user}", url='https://discord.com/api/oauth2/authorize?client_id=933860473068195900&permissions=8&scope=bot', description=f"Informacion sobre el Bot {Bot.user.name}", color=discord.Color.green())
+    embed = nextcord.Embed(title=f"Informacion sobre {Bot.user}", url='https://discord.com/api/oauth2/authorize?client_id=933860473068195900&permissions=8&scope=bot', description=f"Informacion sobre el Bot {Bot.user.name}", color=nextcord.Color.green())
     embed.add_field(name="Nombre", value=f"{Bot.user.name}")
     embed.add_field(name="Bot creado por", value="♞!i~𝞚ℝⱮ𝞓𝞟🅓𝞨;..♟#7094")
     embed.add_field(name="ID Del Bot", value=f"{Bot.user.id}")
     embed.add_field(name="Version del Bot", value=f"{version}")
     embed.add_field(name="Ping del Bot", value=f'{round (Bot.latency * 1000)}ms')
     embed.set_footer(text=f"{ctx.message.author.name} Esperamos que te aya servido esta informacion")
-    embed.set_thumbnail(url=Bot.user.avatar_url)
-    embed.set_author(name=Bot.user, icon_url=Bot.user.avatar_url)
+    embed.set_thumbnail(url=Bot.user.avatar)
+    embed.set_author(name=Bot.user, icon_url=Bot.user.avatar  )
     
     await ctx.send(embed=embed)
 
 @Bot.command()
 async def invite(ctx):
-    embed = discord.Embed(title=f"Click aqui para invitar a {Bot.user}", url='https://discord.com/api/oauth2/authorize?client_id=933860473068195900&permissions=8&scope=bot', desciption=".", color=discord.Colour.green())
-    embed.set_author(name=Bot.user, icon_url=Bot.user.avatar_url)
+    embed = nextcord.Embed(title=f"Click aqui para invitar a {Bot.user}", url='https://discord.com/api/oauth2/authorize?client_id=933860473068195900&permissions=8&scope=bot', desciption=".", color=nextcord.Colour.green())
+    embed.set_author(name=Bot.user, icon_url=Bot.user.avatar)
     embed.set_footer(text=f"{ctx.message.author.name}Agrega a {Bot.user.name} a tu servidor :)")
-    embed.set_thumbnail(url=ctx.message.author.avatar_url)
+    embed.set_thumbnail(url=ctx.message.author.avatar)
     await ctx.send(embed=embed)
 
 
@@ -126,7 +135,7 @@ async def subscriptores(ctx,username):
     data = urllib.request.urlopen("https://www.googleapis.com/youtube/v3/channels?part=statistics&forUsername=" + username + "&key=" + key).read()
     subs = json.loads(data)["items"][0]["statistics"]["subscriberCount"]
     response = username + " tiene " + "{:,d}".format(int(subs)) + " suscriptores!"
-    embed = discord.Embed(title=f"Subs de {username}:", description=f"{response}", color=discord.Colour.red())
+    embed = nextcord.Embed(title=f"Subs de {username}:", description=f"{response}", color=nextcord.Colour.red())
     embed.set_thumbnail(url="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/YouTube_social_white_squircle.svg/2048px-YouTube_social_white_squircle.svg.png")
     await ctx.send(embed=embed)
 
@@ -134,28 +143,28 @@ async def subscriptores(ctx,username):
 @Bot.command()
 async def sumar(ctx, num1,num2):
     response = int(num1)+int(num2)
-    embed = discord.Embed(title="Respuesta", description=f"{num1} + {num2} = {response}", color=discord.Color.green())
+    embed = nextcord.Embed(title="Respuesta", description=f"{num1} + {num2} = {response}", color=nextcord.Color.green())
     await ctx.send(embed=embed)
 
 
 @Bot.command()
 async def multiplicar(ctx, num1,num2):
     response = int(num1)*int(num2)
-    embed = discord.Embed(title="Respuesta", description=f"{num1} X {num2} = {response}", color=discord.Color.green())
+    embed = nextcord.Embed(title="Respuesta", description=f"{num1} X {num2} = {response}", color=nextcord.Color.green())
     await ctx.send(embed=embed)
     
     
 @Bot.command()
 async def dividir(ctx, num1,num2):
     response = int(num1)/int(num2)
-    embed = discord.Embed(title="Respuesta", description=f"{num1} ÷ {num2} = {response}", color=discord.Color.green())
+    embed = nextcord.Embed(title="Respuesta", description=f"{num1} ÷ {num2} = {response}", color=nextcord.Color.green())
     await ctx.send(embed=embed)
 
 
 @Bot.command()
 async def restar(ctx, num1,num2):
     response = int(num1)-int(num2)
-    embed = discord.Embed(title="Respuesta", description=f"{num1} - {num2} = {response}", color=discord.Color.green())
+    embed = nextcord.Embed(title="Respuesta", description=f"{num1} - {num2} = {response}", color=nextcord.Color.green())
     await ctx.send(embed=embed)
 
 
@@ -173,7 +182,7 @@ async def server_info(ctx):
     role_count = len(ctx.guild.roles)
     list_of_bots = [bot.mention for bot in  ctx.guild.members if bot.bot]
     
-    embed = discord.Embed(title=f"{ctx.guild.name} Server Info", description="Server info", timestamp=datetime.datetime.utcnow(), color=discord.Colour.blue())
+    embed = nextcord.Embed(title=f"{ctx.guild.name} Server Info", description="Server info", timestamp=datetime.datetime.utcnow(), color=nextcord.Colour.blue())
     embed.add_field(name="Nombre", value=f"{ctx.guild.name}")
     embed.add_field(name="Descripcion", value=f"{ctx.guild.description}")
     embed.add_field(name="Servidor creado el", value=f"{ctx.guild.created_at}")
@@ -185,8 +194,8 @@ async def server_info(ctx):
     embed.add_field(name="Numero de roles", value=str(role_count))
     embed.add_field(name="Server Region", value=f"{ctx.guild.region}")
     embed.add_field(name="Server ID", value=f"{ctx.guild.id}")
-    embed.set_author(name=ctx.guild.name, icon_url=ctx.guild.icon_url)
-    embed.set_thumbnail(url=ctx.guild.icon_url)
+    embed.set_author(name=ctx.guild.name, icon_url=ctx.guild.icon)
+    embed.set_thumbnail(url=ctx.guild.icon)
     await ctx.send(embed=embed)
     
 
@@ -210,7 +219,7 @@ async def stop_bot_131408(ctx):
    await Bot.close()
    
 @Bot.command(pass_context=True)
-async def name_edit(ctx, usuario:discord.Member, Nick):
+async def name_edit(ctx, usuario:nextcord.Member, Nick):
     await usuario.edit(nick=Nick)
 
 
@@ -243,7 +252,7 @@ async def on_ready():
         await db.commit()
 
         
-    await Bot.change_presence(activity=discord.Game(name="Utiliza !help comandos",))
+    await Bot.change_presence(activity=nextcord.Game(name="Utiliza !help comandos",))
     print(Fore.WHITE + "+===============================+" + Style.RESET_ALL)
     print(Fore.GREEN + "---BOT ONLINE---" + Style.RESET_ALL)
     print(f"{Fore.GREEN} The Bot {Bot.user} Ready {Style.RESET_ALL}")
@@ -269,9 +278,9 @@ async def on_member_join(member):
                 else:
                     try:
                         channel_text = await Bot.fetch_channel(channel_text)
-                        embed = discord.Embed(title=f"{member.name} Bienvenid@ a {member.guild.name}", description="", color=discord.Color.green())
-                        embed.set_author(name=Bot.user, icon_url=Bot.user.avatar_url)
-                        embed.set_thumbnail(url=member.avatar_url)
+                        embed = nextcord.Embed(title=f"{member.name} Bienvenid@ a {member.guild.name}", description="", color=nextcord.Color.green())
+                        embed.set_author(name=Bot.user, icon_url=Bot.user.avatar)
+                        embed.set_thumbnail(url=member.avatar)
                         await channel_text.send(embed=embed)
                     except:
                         pass
@@ -316,7 +325,7 @@ async def bienvenidac(ctx, canal=None):
 
 @Bot.event
 async def on_member_join(ctx):
-    role = discord.utils.get(ctx.guild.roles, name = 'nuevo')
+    role = nextcord.utils.get(ctx.guild.roles, name = 'nuevo')
     await ctx.add_roles(role)
 
 
@@ -341,7 +350,7 @@ winningConditions = [
 ]
 
 @Bot.command()
-async def game(ctx, p1: discord.Member, p2: discord.Member):
+async def game(ctx, p1: nextcord.Member, p2: nextcord.Member):
     global count
     global jugador
     global jugador2
@@ -439,51 +448,12 @@ def checkWinner(winningConditions, mark):
             gameOver = True
 
 
-#Help_bot
-
-@Bot.command()
-async def help(ctx, arg):
-    comandos = "Prefijo del bot: \n ! o /  "
-    if arg == "comandos":
-        embed = discord.Embed(title=Bot.user, url='https://discord.com/api/oauth2/authorize?client_id=933860473068195900&permissions=8&scope=bot', desciption=comandos, color=discord.Colour.blue())
-        embed.add_field(name="Comandos: \n   help", value="Sirve para pedir ayuda sobre el bot \n Ya sea sobre comandos, informacion o funciones.")
-        embed.add_field(name="name_edit", value=f"Cambia el nombre del etiquetado, ejemplo: !name_edit @{Bot.user}")
-        embed.add_field(name="secret", value="Manda un mensaje sin nombre del autor")
-        embed.add_field(name="hola", value="Saludas al bot")
-        embed.add_field(name="server_info", value=f"Proporciona informacion sobre el servidor {ctx.guild.name}")
-        embed.add_field(name="subs", value="Proporciona el numero de subscriptores, Ejemplo: !subs HolaSoyGerman")
-        embed.add_field(name="youtube", value="Funciona como un buscador de youtube")
-        embed.add_field(name="sumar", value="Suma 2 numeros diferentes")
-        embed.add_field(name="multiplicar", value="Multiplica 2 numeros diferentes")
-        embed.add_field(name="dividir", value="Divide 2 numeros diferentes")
-        embed.add_field(name="restar", value="Resta 2 numeros diferentes")
-        embed.add_field(name="user_info", value="Proporciona informacion sobre un usuario")
-        embed.add_field(name="invite", value=f"Con el puedes invitar a {Bot.user} en otro servidor")
-        embed.add_field(name="game", value="Utilizalo para jugar 3 en raya o conocido en algunos paises como gato")
-        embed.add_field(name="lugar", value="Utilizalo despues de !game para poner en casilla, Ejemplo: !game !lugar 3")
-        embed.add_field(name="prefix", value="Utilizalo para cambia el prefijo del Bot")
-    
-        embed.add_field(name="configbienvenida", value="Configura el canal de texto introducido para las bienvenidas, Puedes mencionar el canal o poner su id para estableserlo como canal de bienvenidas")
-        embed.set_footer(text=f"{ctx.message.author.name} Estos son los comandos de {Bot.user.name}")
-        embed.set_author(name=Bot.user, icon_url=Bot.user.avatar_url)
-        embed.set_thumbnail(url=Bot.user.avatar_url)
-        await ctx.send(embed=embed)
-    
-@help.error
-async def help(ctx, error):
-    if isinstance(error, commands.MissingRequiredArgument):
-        embed1 = discord.Embed(title=Bot.user, url='https://discord.com/api/oauth2/authorize?client_id=933860473068195900&permissions=8&scope=bot', desciption="Requirements", color=discord.Colour.blue())
-        embed1.add_field(name="Requirements", value=f"Para que {Bot.user} funcione al 100% nesesitas: \n Crear un Rol llamado: nuevo")
-        embed1.add_field(name="Comandos", value=" para ver los comandos utiliza el comando: help comandos")
-        
-        await ctx.send(embed=embed1)
-
 #Anti spam
 
 async def silenciarUsuario(user, razon=".", temp=120):
-    await user.add_roles(discord.utils.get(user.guild.roles, name="MUTE"))
+    await user.add_roles(nextcord.utils.get(user.guild.roles, name="MUTE"))
 
-    embedVar = discord.Embed(title=f"ESTÁS SILENCIADO", color=discord.Colour.red())
+    embedVar = nextcord.Embed(title=f"ESTÁS SILENCIADO", color=nextcord.Colour.red())
     embedVar.add_field(name=f"Razón: ", value=f"{razon}!", inline=True)
     embedVar.add_field(name=f"Duración silencio: ", value=f"{temp} segundos!", inline=True)
     embedVar.set_footer(text="No vuelvas a hacerlo o volverás a ser sancionado!")
@@ -492,7 +462,7 @@ async def silenciarUsuario(user, razon=".", temp=120):
     await user.send(embed=embedVar)
 
     await asyncio.sleep(temp)
-    await user.remove_roles(discord.utils.get(user.guild.roles, name="MUTE"))
+    await user.remove_roles(nextcord.utils.get(user.guild.roles, name="MUTE"))
 
 cooldown = commands.CooldownMapping.from_cooldown(10, 10, commands.BucketType.member)
 @Bot.event
@@ -520,7 +490,7 @@ async def on_message(msg):
 @subscriptores.error
 async def subscriptores(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
-        embed=discord.Embed(title="Error", description="Ingresa el nombre del Youtuber, Recuerda que solo funciona con Youtubers Verificados", color=discord.Color.red)
+        embed=nextcord.Embed(title="Error", description="Ingresa el nombre del Youtuber, Recuerda que solo funciona con Youtubers Verificados", color=nextcord.Color.red())
         embed.set_author(name=f"{Bot.user.name}", icon_url=f"{Bot.user.avatar_url}")
         await ctx.send(embed=embed)
         
@@ -529,35 +499,46 @@ async def subscriptores(ctx, error):
 async def game(ctx, error):
     print(error)
     if isinstance(error, commands.MissingRequiredArgument):
-        embed=discord.Embed(title="Error", description="Mencione 2 jugadores para este comando.", color=discord.Color.red())
+        embed=nextcord.Embed(title="Error", description="Mencione 2 jugadores para este comando.", color=nextcord.Color.red())
         await ctx.send(embed=embed)
     elif isinstance(error, commands.BadArgument):
-        embed1=discord.Embed(title="Error", description="Por favor asegúrate de mencionar / hacer ping a los jugadores.", color=discord.Color.red())
+        embed1=nextcord.Embed(title="Error", description="Por favor asegúrate de mencionar / hacer ping a los jugadores.", color=nextcord.Color.red())
         await ctx.send(embed=embed1)
 
 @lugar.error
 async def lugar(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
-        embed=discord.Embed(title="Error", description="Ingrese una posición que le gustaría marcar.", color=discord.Color.red())
+        embed=nextcord.Embed(title="Error", description="Ingrese una posición que le gustaría marcar.", color=nextcord.Color.red())
         await ctx.send(embed=embed)
     elif isinstance(error, commands.BadArgument):
-        embed1=discord.Embed(title="Error", description="Por favor asegúrese de ingresar un número entero.", color=discord.Color.red())
+        embed1=nextcord.Embed(title="Error", description="Por favor asegúrese de ingresar un número entero.", color=nextcord.Color.red())
         await ctx.send(embed=embed1)
 
 
 @prefix.error
 async def prefix(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
-        embed=discord.Embed(title="Error", description="Ingrese un prefijo", color=discord.Color.red())
+        embed=nextcord.Embed(title="Error", description="Ingrese un prefijo", color=nextcord.Color.red())
         await ctx.send(embed=embed)
         
-        
-#RunBot
+     
 
-async def setup():
+#Cogs
+
+async def setup(Bot: commands.Bot):
     await Bot.wait_until_ready()
     Bot.add_cog(Player(Bot))
+    
+def helpfuntion(bot: commands.Bot):
+    bot.add_cog(HelpCog(bot))
+    
+def funfuntion(Bot: commands.Bot):
+    Bot.add_cog(funcommands(Bot))
+    
+#RunBot
 
-Bot.loop.create_task(setup())
+funfuntion(Bot)
+helpfuntion(Bot)
+Bot.loop.create_task(setup(Bot))
 keep_alive.keep_alive()
 Bot.run(token)

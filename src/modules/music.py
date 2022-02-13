@@ -1,14 +1,19 @@
 import asyncio
 import youtube_dl
 import pafy
-import discord
-from discord.ext import commands
+import nextcord
+from nextcord.ext import commands
+from colorama import Fore
+from colorama import Style
 
-class Player(commands.Cog):
+class Player(commands.Cog, name="Musica"):
+    """Reproduce Musica"""
+    COG_EMOJI = "🎧"
+    
     def __init__(self, Bot):
         self.Bot = Bot 
         self.song_queue = {}
-
+    
         self.setup()
 
     def setup(self):
@@ -28,11 +33,16 @@ class Player(commands.Cog):
 
     async def play_song(self, ctx, song):
         url = pafy.new(song).getbestaudio().url
-        ctx.voice_client.play(discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(url)), after=lambda error: self.Bot.loop.create_task(self.check_queue(ctx)))
+        ctx.voice_client.play(nextcord.PCMVolumeTransformer(nextcord.FFmpegPCMAudio(url)), after=lambda error: self.Bot.loop.create_task(self.check_queue(ctx)))
         ctx.voice_client.source.volume = 0.5
 
+    @commands.Cog.listener()
+    async def on_ready(self):
+        print(f"{Fore.RED} *+*+*--- Music.Cog Loaded Successfully ---*+*+* {Style.RESET_ALL}")
+        
     @commands.command()
     async def join(self, ctx):
+        """Mete al Bot en tu canal de Voz"""
         if ctx.author.voice is None:
             return await ctx.send("No está conectado a un canal de voz, conéctese al canal al que desea que se una el bot.")
 
@@ -43,6 +53,7 @@ class Player(commands.Cog):
 
     @commands.command()
     async def leave(self, ctx):
+        """Saca al Bot de Su canal de Voz"""
         if ctx.voice_client is not None:
             return await ctx.voice_client.disconnect()
 
@@ -50,6 +61,7 @@ class Player(commands.Cog):
 
     @commands.command()
     async def play(self, ctx, *, song=None):
+        """Reproduce una cancion Mencionada"""
         if song is None:
             return await ctx.send("Debes incluir una canción para reproducir.")
 
@@ -82,13 +94,14 @@ class Player(commands.Cog):
 
     @commands.command()
     async def search(self, ctx, *, song=None):
+        """Busca una cancion"""
         if song is None: return await ctx.send("Olvidaste incluir una canción para buscar.")
 
         await ctx.send("Buscando una canción, esto puede tardar unos segundos.")
 
         info = await self.search_song(5, song)
 
-        embed = discord.Embed(title=f"resultados para '{song}':", description="*Puede usar estas URL para reproducir una canción exacta si la que desea no es el primer resultado.*\n", colour=discord.Colour.red())
+        embed = nextcord.Embed(title=f"resultados para '{song}':", description="*Puede usar estas URL para reproducir una canción exacta si la que desea no es el primer resultado.*\n", colour=nextcord.Colour.red())
         
         amount = 0
         for entry in info["entries"]:
@@ -100,10 +113,11 @@ class Player(commands.Cog):
 
     @commands.command()
     async def queue(self, ctx): # display the current guilds queue
+        """Verifica las canciones que estan en Cola"""
         if len(self.song_queue[ctx.guild.id]) == 0:
             return await ctx.send("Actualmente no hay canciones en la cola.")
 
-        embed = discord.Embed(title="Song Queue", description="", colour=discord.Colour.dark_gold())
+        embed = nextcord.Embed(title="Song Queue", description="", colour=nextcord.Colour.dark_gold())
         i = 1
         for url in self.song_queue[ctx.guild.id]:
             embed.description += f"{i}) {url}\n"
@@ -115,6 +129,7 @@ class Player(commands.Cog):
 
     @commands.command()
     async def skip(self, ctx):
+        """Genera una Votacion para omitir la Cancion"""
         if ctx.voice_client is None:
             return await ctx.send("No estoy tocando ninguna canción.")
 
@@ -124,7 +139,7 @@ class Player(commands.Cog):
         if ctx.author.voice.channel.id != ctx.voice_client.channel.id:
             return await ctx.send("Actualmente no estoy reproduciendo ninguna canción para ti.")
 
-        poll = discord.Embed(title=f"Vota para saltar la canción de - {ctx.author.name}#{ctx.author.discriminator}", description="**80% of el canal de voz debe votar para saltar para que pase.**", colour=discord.Colour.blue())
+        poll = nextcord.Embed(title=f"Vota para saltar la canción de - {ctx.author.name}#{ctx.author.discriminator}", description="**80% of el canal de voz debe votar para saltar para que pase.**", colour=nextcord.Colour.blue())
         poll.add_field(name="Saltar", value=":white_check_mark:")
         poll.add_field(name="Quedarse", value=":no_entry_sign:")
         poll.set_footer(text="La votación termina en 15 segundos.")
@@ -155,10 +170,10 @@ class Player(commands.Cog):
         if votes[u"\u2705"] > 0:
             if votes[u"\U0001F6AB"] == 0 or votes[u"\u2705"] / (votes[u"\u2705"] + votes[u"\U0001F6AB"]) > 0.79: # 80% or higher
                 skip = True
-                embed = discord.Embed(title="Saltada exitosamente", description="***La votación para omitir la canción actual fue exitosa, omitiéndola ahora.***", colour=discord.Colour.green())
+                embed = nextcord.Embed(title="Saltada exitosamente", description="***La votación para omitir la canción actual fue exitosa, omitiéndola ahora.***", colour=nextcord.Colour.green())
 
         if not skip:
-            embed = discord.Embed(title="Salto fallido", description="*La votación para omitir la canción actual ha fallado.*\n\n**La votación falló, la votación requiere que al menos el 80% de los miembros se salte.**", colour=discord.Colour.red())
+            embed = nextcord.Embed(title="Salto fallido", description="*La votación para omitir la canción actual ha fallado.*\n\n**La votación falló, la votación requiere que al menos el 80% de los miembros se salte.**", colour=nextcord.Colour.red())
 
         embed.set_footer(text="La votación ha terminado.")
 
@@ -171,6 +186,7 @@ class Player(commands.Cog):
 
     @commands.command()
     async def pause(self, ctx):
+        """Pausa la Cancion"""
         if ctx.voice_client.is_paused():
             return await ctx.send("Ya estoy en pausa.")
 
@@ -179,6 +195,7 @@ class Player(commands.Cog):
 
     @commands.command()
     async def resume(self, ctx):
+        """Reanuda la reproduccion de una Cancion Pausada"""
         if ctx.voice_client is None:
             return await ctx.send("No estoy conectado a un canal de voz.")
 
