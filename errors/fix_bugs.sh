@@ -1,4 +1,4 @@
-pip install discord
+pip install nexcord
 pip install colorama
 pip install python-dotenv
 pip install aiosqlite

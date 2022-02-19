@@ -29,6 +29,7 @@ load_dotenv()
 token = os.environ['token']
 key = os.environ['key']
 version = os.environ['version']
+spassword = os.environ['password']
 
 intents = nextcord.Intents.default()
 intents.members = True
@@ -91,6 +92,16 @@ async def prefix(ctx, prefix):
 @Bot.remove_command('help')
 
 #Commands
+
+@Bot.command()
+async def reload(ctx, Bot: commands.Bot, arg):
+    auid = "681903559175962687"
+    if message.author.id is auid:
+        Bot.reload_extension(arg)
+        await ctx.send(f"{arg} Se a recargado correctamente")
+        
+    if arg is None:
+        await ctx.send("Debes ingresar un Cog")
 
 @Bot.command()
 async def user_info(ctx, *, member: nextcord.Member):
@@ -207,21 +218,24 @@ async def hola(ctx):
     
     
 @Bot.command(pass_context=True)
-async def secret( ctx, *, arg):
-    Mensage = ctx.message
-    await Mensage.delete()
-    await ctx.send(arg)
-    
-    
+async def console(ctx, arg:str):
+    print(arg)
+ 
 @Bot.command(pass_context=True)
-async def stop_bot_131408(ctx):
-   await ctx.send("Apagando Bot...")
-   await Bot.close()
-   
-@Bot.command(pass_context=True)
-async def name_edit(ctx, usuario:nextcord.Member, Nick):
-    await usuario.edit(nick=Nick)
-
+@commands.has_permissions(administrator=True)
+async def stop(ctx, password):
+    if(ctx.message.author.id == "681903559175962687"):
+        if(password == spassword):
+            await ctx.send("Apagando Bot...")
+            await Bot.close()
+        if(password != spassword):
+            await ctx.send("Password Incorrecto")
+@stop.error
+async def stop(ctx, error):
+    print(error)
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send("Ingresa una Password")
+    
 
 #SysCommands
 
@@ -534,6 +548,10 @@ def helpfuntion(bot: commands.Bot):
     
 def funfuntion(Bot: commands.Bot):
     Bot.add_cog(funcommands(Bot))
+    
+def errorfuntion(Bot: commands.Bot):
+    Bot.add_cog(errors(Bot))
+    
     
 #RunBot
 
