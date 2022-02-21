@@ -23,9 +23,9 @@ from modules.music import Player
 from modules.help import *
 from modules.funcommands import funcommands
 
-
 load_dotenv()
 
+host =os.environ['host']
 token = os.environ['token']
 key = os.environ['key']
 version = os.environ['version']
@@ -266,7 +266,7 @@ async def on_ready():
         await db.commit()
 
         
-    await Bot.change_presence(activity=nextcord.Game(name="Utiliza !help comandos",))
+    await Bot.change_presence(activity=nextcord.Game(name="Utiliza !help",))
     print(Fore.WHITE + "+===============================+" + Style.RESET_ALL)
     print(Fore.GREEN + "---BOT ONLINE---" + Style.RESET_ALL)
     print(f"{Fore.GREEN} The Bot {Bot.user} Ready {Style.RESET_ALL}")
@@ -543,20 +543,34 @@ async def setup(Bot: commands.Bot):
     await Bot.wait_until_ready()
     Bot.add_cog(Player(Bot))
     
-def helpfuntion(bot: commands.Bot):
-    bot.add_cog(HelpCog(bot))
-    
 def funfuntion(Bot: commands.Bot):
     Bot.add_cog(funcommands(Bot))
     
 def errorfuntion(Bot: commands.Bot):
     Bot.add_cog(errors(Bot))
     
-    
+#HelpCogHostType
+if host == "dev":
+    from modules.help import HelpCog
+    def helpfuntion(bot: commands.Bot):
+        bot.add_cog(HelpCog(bot))
+    helpfuntion(Bot)
+if host != "dev":
+    if host == "replit":
+        @Bot.command()
+        async def help(ctx):
+            await ctx.send("El comando: help. Esta desabilitado debido a un error. \n \n Puedes ver los comandos en: \n https://akazarbweb.k1ngdev-server.repl.co/commands")
+    if host != "replit":
+        print(f"{Fore.RED} ******************************************************************* {Style.RESET_ALL}")
+        print(f"{Fore.RED} El Host No es un Host Oficial hacegurate de que este bien escrito {Style.RESET_ALL}")
+        print(f"{Fore.RED} ******************************************************************* {Style.RESET_ALL}")
+        @Bot.command()
+        async def help(ctx):
+            await ctx.send("El comando: help. Esta desabilitado debido a un error. \n \n Puedes ver los comandos en: \n https://akazarbweb.k1ngdev-server.repl.co/commands")
+            
 #RunBot
 
 funfuntion(Bot)
-helpfuntion(Bot)
 Bot.loop.create_task(setup(Bot))
 keep_alive.keep_alive()
 Bot.run(token)

@@ -7,6 +7,7 @@ class funcommands(commands.Cog, name="Diversion"):
     
     def __init__(self, Bot):
         self.Bot = Bot 
+        
     @commands.command(pass_context=True)
     async def secret( ctx, *, arg):
         """Envia un mensaje sin Author"""
