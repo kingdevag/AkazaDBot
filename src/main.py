@@ -25,7 +25,7 @@ from modules.funcommands import funcommands
 
 load_dotenv()
 
-host =os.environ['host']
+host = os.environ['host']
 token = os.environ['token']
 key = os.environ['key']
 version = os.environ['version']
